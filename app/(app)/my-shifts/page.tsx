@@ -1,14 +1,11 @@
-import { Calendar02Icon } from "@hugeicons/core-free-icons"
-
-import { PlaceholderPage } from "@/components/common/placeholder-page"
+import { PageHeader } from "@/components/common/page-header"
+import { MyShiftsList } from "@/components/my-shifts/my-shifts-list"
 
 export default function MyShiftsPage() {
   return (
-    <PlaceholderPage
-      title="My shifts"
-      description="Your upcoming and past shifts."
-      icon={Calendar02Icon}
-      note="Your personal shift view is being built."
-    />
+    <div className="flex flex-col gap-6">
+      <PageHeader title="My shifts" description="Your shifts this week at Coastal Eats." />
+      <MyShiftsList />
+    </div>
   )
 }
