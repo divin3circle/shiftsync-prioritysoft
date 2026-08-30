@@ -1,14 +1,14 @@
-import { Time04Icon } from "@hugeicons/core-free-icons"
-
-import { PlaceholderPage } from "@/components/common/placeholder-page"
+import { PageHeader } from "@/components/common/page-header"
+import { AvailabilityEditor } from "@/components/availability/availability-editor"
 
 export default function AvailabilityPage() {
   return (
-    <PlaceholderPage
-      title="Availability"
-      description="Set the recurring hours and exceptions when you can work."
-      icon={Time04Icon}
-      note="The availability editor is being built."
-    />
+    <div className="flex flex-col gap-6">
+      <PageHeader
+        title="Availability"
+        description="Set the recurring hours and exceptions when you can work."
+      />
+      <AvailabilityEditor />
+    </div>
   )
 }

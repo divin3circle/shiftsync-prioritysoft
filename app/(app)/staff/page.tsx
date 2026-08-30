@@ -1,14 +1,11 @@
-import { UserMultipleIcon } from "@hugeicons/core-free-icons"
-
-import { PlaceholderPage } from "@/components/common/placeholder-page"
+import { PageHeader } from "@/components/common/page-header"
+import { StaffTable } from "@/components/staff/staff-table"
 
 export default function StaffPage() {
   return (
-    <PlaceholderPage
-      title="Staff"
-      description="Roster with skills, certifications, and availability."
-      icon={UserMultipleIcon}
-      note="The staff directory and detail views are being built."
-    />
+    <div className="flex flex-col gap-6">
+      <PageHeader title="Staff" description="Roster with skills, certifications, and scheduled hours." />
+      <StaffTable />
+    </div>
   )
 }
