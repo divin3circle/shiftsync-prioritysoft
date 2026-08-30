@@ -1,14 +1,14 @@
-import { Tag01Icon } from "@hugeicons/core-free-icons"
-
-import { PlaceholderPage } from "@/components/common/placeholder-page"
+import { PageHeader } from "@/components/common/page-header"
+import { OpenShifts } from "@/components/pickup/open-shifts"
 
 export default function PickupPage() {
   return (
-    <PlaceholderPage
-      title="Open shifts"
-      description="Claim available shifts you are qualified for."
-      icon={Tag01Icon}
-      note="The open-shift board is being built."
-    />
+    <div className="flex flex-col gap-6">
+      <PageHeader
+        title="Open shifts"
+        description="Claim available shifts you are qualified and certified for."
+      />
+      <OpenShifts />
+    </div>
   )
 }
