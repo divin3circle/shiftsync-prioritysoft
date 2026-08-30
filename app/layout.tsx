@@ -1,8 +1,15 @@
-import { Geist, Geist_Mono, Montserrat } from "next/font/google"
+import { Geist_Mono, Montserrat } from "next/font/google"
 
 import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
+import { TooltipProvider } from "@/components/ui/tooltip"
+import { Toaster } from "@/components/ui/sonner"
 import { cn } from "@/lib/utils";
+
+export const metadata = {
+  title: "ShiftSync",
+  description: "Multi-location staff scheduling for Coastal Eats",
+}
 
 const montserrat = Montserrat({subsets:['latin'],variable:'--font-sans'})
 
@@ -23,7 +30,10 @@ export default function RootLayout({
       className={cn("antialiased", fontMono.variable, "font-sans", montserrat.variable)}
     >
       <body>
-        <ThemeProvider>{children}</ThemeProvider>
+        <ThemeProvider>
+          <TooltipProvider>{children}</TooltipProvider>
+          <Toaster />
+        </ThemeProvider>
       </body>
     </html>
   )
