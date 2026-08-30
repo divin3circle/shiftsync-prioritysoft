@@ -1,11 +1,11 @@
 "use client"
 
-import Link from "next/link"
 import { HugeiconsIcon } from "@hugeicons/react"
 import { Notification03Icon } from "@hugeicons/core-free-icons"
 
 import { demoNotifications } from "@/lib/mock/notifications"
 import { Button } from "@/components/ui/button"
+import { LinkButton } from "@/components/common/link-button"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import {
   Sheet,
@@ -62,9 +62,9 @@ export function NotificationsButton() {
           </div>
         </ScrollArea>
         <SheetFooter>
-          <Button variant="outline" render={<Link href="/notifications" />}>
+          <LinkButton href="/notifications" variant="outline">
             View all
-          </Button>
+          </LinkButton>
         </SheetFooter>
       </SheetContent>
     </Sheet>
