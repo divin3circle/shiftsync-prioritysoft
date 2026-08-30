@@ -1,14 +1,14 @@
-import { JusticeScale01Icon } from "@hugeicons/core-free-icons"
-
-import { PlaceholderPage } from "@/components/common/placeholder-page"
+import { PageHeader } from "@/components/common/page-header"
+import { FairnessView } from "@/components/fairness/fairness-view"
 
 export default function FairnessPage() {
   return (
-    <PlaceholderPage
-      title="Fairness"
-      description="How evenly hours and premium shifts are shared."
-      icon={JusticeScale01Icon}
-      note="Distribution reports and the fairness score are being built."
-    />
+    <div className="flex flex-col gap-6">
+      <PageHeader
+        title="Fairness"
+        description="How evenly hours and premium shifts are shared across the team."
+      />
+      <FairnessView />
+    </div>
   )
 }
