@@ -1,14 +1,11 @@
-import { Calendar03Icon } from "@hugeicons/core-free-icons"
-
-import { PlaceholderPage } from "@/components/common/placeholder-page"
+import { PageHeader } from "@/components/common/page-header"
+import { ScheduleBoard } from "@/components/schedule/schedule-board"
 
 export default function SchedulePage() {
   return (
-    <PlaceholderPage
-      title="Schedule"
-      description="Build, assign, and publish the weekly schedule."
-      icon={Calendar03Icon}
-      note="The week grid with assignment and publishing controls is being built."
-    />
+    <div className="flex flex-col gap-6">
+      <PageHeader title="Schedule" description="Build, assign, and publish the weekly schedule." />
+      <ScheduleBoard />
+    </div>
   )
 }
