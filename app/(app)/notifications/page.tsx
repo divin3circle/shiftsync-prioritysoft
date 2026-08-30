@@ -1,14 +1,14 @@
-import { Notification03Icon } from "@hugeicons/core-free-icons"
-
-import { PlaceholderPage } from "@/components/common/placeholder-page"
+import { PageHeader } from "@/components/common/page-header"
+import { NotificationCenter } from "@/components/notifications/notification-center"
 
 export default function NotificationsPage() {
   return (
-    <PlaceholderPage
-      title="Notifications"
-      description="Everything that needs your attention, with read status."
-      icon={Notification03Icon}
-      note="The full notification center is being built."
-    />
+    <div className="flex flex-col gap-6">
+      <PageHeader
+        title="Notifications"
+        description="Everything that needs your attention, with read status."
+      />
+      <NotificationCenter />
+    </div>
   )
 }

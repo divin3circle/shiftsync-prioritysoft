@@ -1,14 +1,11 @@
-import { Settings01Icon } from "@hugeicons/core-free-icons"
-
-import { PlaceholderPage } from "@/components/common/placeholder-page"
+import { PageHeader } from "@/components/common/page-header"
+import { SettingsForm } from "@/components/settings/settings-form"
 
 export default function SettingsPage() {
   return (
-    <PlaceholderPage
-      title="Settings"
-      description="Profile and notification preferences."
-      icon={Settings01Icon}
-      note="Account and notification settings are being built."
-    />
+    <div className="flex flex-col gap-6">
+      <PageHeader title="Settings" description="Profile and notification preferences." />
+      <SettingsForm />
+    </div>
   )
 }

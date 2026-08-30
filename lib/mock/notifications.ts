@@ -35,4 +35,25 @@ export const demoNotifications: DemoNotification[] = [
     time: "Yesterday",
     unread: false,
   },
+  {
+    id: "n5",
+    title: "Shift assigned",
+    body: "You are on bar at Harbor Grill, Friday 4:00p.",
+    time: "Yesterday",
+    unread: false,
+  },
+  {
+    id: "n6",
+    title: "Drop request expiring",
+    body: "Priya's Saturday server shift is unclaimed and expires soon.",
+    time: "2 days ago",
+    unread: false,
+  },
+  {
+    id: "n7",
+    title: "Seventh day override logged",
+    body: "Manager approved Priya Shah's seventh consecutive day.",
+    time: "2 days ago",
+    unread: false,
+  },
 ]
