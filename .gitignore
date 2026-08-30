@@ -34,3 +34,10 @@ pnpm-debug.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# assistant helper files
+AGENTS.md
+CLAUDE.md
+.claude/
+.cursor/
+scratch/
