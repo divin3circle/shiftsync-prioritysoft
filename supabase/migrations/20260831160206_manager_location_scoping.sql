@@ -1,0 +1,3 @@
+-- Intentionally empty. The original write was interrupted and recorded as an
+-- empty migration on the linked database; the real change lives in
+-- 20260831161327_manager_location_scoping_v2.sql.

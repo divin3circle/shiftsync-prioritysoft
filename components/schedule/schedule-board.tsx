@@ -28,12 +28,14 @@ export function ScheduleBoard({
   location,
   board,
   weekOffset,
+  canManage,
 }: {
   locations: LocationSummary[]
   skills: SkillOption[]
   location: LocationSummary
   board: WeekBoard
   weekOffset: number
+  canManage: boolean
 }) {
   const router = useRouter()
   const [publishing, startPublishing] = React.useTransition()
@@ -109,20 +111,26 @@ export function ScheduleBoard({
           <Badge variant={board.published ? "secondary" : "outline"}>
             {board.published ? "Published" : "Draft"}
           </Badge>
-          <Button
-            variant={board.published ? "outline" : "default"}
-            size="sm"
-            disabled={publishing}
-            onClick={togglePublished}
-          >
-            {board.published ? "Unpublish" : "Publish week"}
-          </Button>
-          <NewShiftDialog
-            locations={locations}
-            skills={skills}
-            currentLocationId={location.id}
-            weekOffset={weekOffset}
-          />
+          {canManage ? (
+            <>
+              <Button
+                variant={board.published ? "outline" : "default"}
+                size="sm"
+                disabled={publishing}
+                onClick={togglePublished}
+              >
+                {board.published ? "Unpublish" : "Publish week"}
+              </Button>
+              <NewShiftDialog
+                locations={locations}
+                skills={skills}
+                currentLocationId={location.id}
+                weekOffset={weekOffset}
+              />
+            </>
+          ) : (
+            <Badge variant="outline">View only</Badge>
+          )}
         </div>
       </div>
 
@@ -144,7 +152,9 @@ export function ScheduleBoard({
                 </div>
                 <div className="flex flex-col gap-2">
                   {day.shifts.length > 0 ? (
-                    day.shifts.map((shift) => <ShiftCard key={shift.id} shift={shift} />)
+                    day.shifts.map((shift) => (
+                      <ShiftCard key={shift.id} shift={shift} canAssign={canManage} />
+                    ))
                   ) : (
                     <div className="text-muted-foreground/60 rounded-lg border border-dashed px-2 py-6 text-center text-xs">
                       No shifts

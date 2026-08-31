@@ -31,13 +31,13 @@ function CardBody({ shift }: { shift: BoardShift }) {
   )
 }
 
-export function ShiftCard({ shift }: { shift: BoardShift }) {
+export function ShiftCard({ shift, canAssign }: { shift: BoardShift; canAssign: boolean }) {
   const cardClass = cn(
     "w-full rounded-lg border p-2 text-left text-xs transition-colors",
     shift.isOpen && "border-destructive/40 border-dashed",
   )
 
-  if (!shift.isOpen) {
+  if (!shift.isOpen || !canAssign) {
     return (
       <div className={cardClass}>
         <CardBody shift={shift} />
