@@ -1,43 +1,45 @@
 "use client"
 
 import * as React from "react"
+import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 
-import { weekDayNames } from "@/lib/mock/schedule"
-import {
-  recurringAvailability,
-  availabilityExceptions,
-  availabilityTimezone,
-} from "@/lib/mock/availability"
+import type { Availability, DayWindow } from "@/lib/data/availability"
+import { saveAvailability } from "@/app/(app)/availability/actions"
 import { Switch } from "@/components/ui/switch"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { SectionCard } from "@/components/common/section-card"
 
-type DayState = { enabled: boolean; start: string; end: string }
+const dayNames = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
 
-function initialDays(): DayState[] {
-  return weekDayNames.map((_, day) => {
-    const window = recurringAvailability.find((item) => item.day === day)
-    return window
-      ? { enabled: true, start: window.start, end: window.end }
-      : { enabled: false, start: "09:00", end: "17:00" }
-  })
-}
+export function AvailabilityEditor({ availability }: { availability: Availability }) {
+  const router = useRouter()
+  const [days, setDays] = React.useState<DayWindow[]>(availability.days)
+  const [saving, setSaving] = React.useState(false)
 
-export function AvailabilityEditor() {
-  const [days, setDays] = React.useState<DayState[]>(initialDays)
-
-  function updateDay(day: number, patch: Partial<DayState>) {
+  function updateDay(day: number, patch: Partial<DayWindow>) {
     setDays((previous) => previous.map((state, index) => (index === day ? { ...state, ...patch } : state)))
+  }
+
+  async function save() {
+    setSaving(true)
+    const result = await saveAvailability(days)
+    setSaving(false)
+    if (result.ok) {
+      toast.success("Availability saved")
+      router.refresh()
+    } else {
+      toast.error(result.message ?? "Could not save availability.")
+    }
   }
 
   return (
     <div className="flex flex-col gap-4">
       <SectionCard
         title="Weekly availability"
-        action={<Badge variant="outline">{availabilityTimezone}</Badge>}
+        action={<Badge variant="outline">{availability.timezone}</Badge>}
       >
         <div className="flex flex-col">
           {days.map((state, day) => (
@@ -50,7 +52,7 @@ export function AvailabilityEditor() {
                   checked={state.enabled}
                   onCheckedChange={(checked) => updateDay(day, { enabled: checked })}
                 />
-                <span className="text-sm font-medium">{weekDayNames[day]}</span>
+                <span className="text-sm font-medium">{dayNames[day]}</span>
               </div>
               {state.enabled ? (
                 <div className="flex items-center gap-2">
@@ -77,26 +79,32 @@ export function AvailabilityEditor() {
       </SectionCard>
 
       <SectionCard title="One-off exceptions">
-        <ul className="flex flex-col">
-          {availabilityExceptions.map((exception) => (
-            <li
-              key={exception.id}
-              className="border-border/60 flex items-center justify-between border-b py-3 last:border-b-0"
-            >
-              <div className="flex flex-col">
-                <span className="text-sm font-medium">{exception.date}</span>
-                <span className="text-muted-foreground text-xs">{exception.note}</span>
-              </div>
-              <Badge variant={exception.kind === "unavailable" ? "destructive" : "secondary"}>
-                {exception.kind === "unavailable" ? "Unavailable" : "Available"}
-              </Badge>
-            </li>
-          ))}
-        </ul>
+        {availability.exceptions.length > 0 ? (
+          <ul className="flex flex-col">
+            {availability.exceptions.map((exception) => (
+              <li
+                key={exception.id}
+                className="border-border/60 flex items-center justify-between border-b py-3 last:border-b-0"
+              >
+                <div className="flex flex-col">
+                  <span className="text-sm font-medium">{exception.date}</span>
+                  <span className="text-muted-foreground text-xs">{exception.note}</span>
+                </div>
+                <Badge variant={exception.kind === "unavailable" ? "destructive" : "secondary"}>
+                  {exception.kind === "unavailable" ? "Unavailable" : "Available"}
+                </Badge>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-muted-foreground text-sm">No exceptions set.</p>
+        )}
       </SectionCard>
 
       <div className="flex justify-end">
-        <Button onClick={() => toast.success("Availability saved")}>Save changes</Button>
+        <Button onClick={save} disabled={saving}>
+          {saving ? "Saving..." : "Save changes"}
+        </Button>
       </div>
     </div>
   )

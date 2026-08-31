@@ -104,6 +104,54 @@ export async function assignToShift(
   return { status: "assigned" }
 }
 
+export type NewShiftInput = {
+  locationId: string
+  weekOffset: number
+  dayIndex: number
+  start: string
+  end: string
+  skillId: string
+  headcount: number
+}
+
+export async function createShift(input: NewShiftInput): Promise<{ ok: boolean; message?: string }> {
+  const user = await requireManager()
+  if (!user) return { ok: false, message: "Only managers can add shifts." }
+
+  const supabase = await createClient()
+  const { data: location } = await supabase
+    .from("locations")
+    .select("timezone")
+    .eq("id", input.locationId)
+    .single()
+  if (!location) return { ok: false, message: "Location not found." }
+
+  const tz = location.timezone as string
+  const { start: weekStart } = weekBounds(tz, input.weekOffset)
+  const day = weekStart.plus({ days: input.dayIndex })
+
+  const [startHour, startMinute] = input.start.split(":").map(Number)
+  const [endHour, endMinute] = input.end.split(":").map(Number)
+  const startsAt = day.set({ hour: startHour, minute: startMinute })
+  let endsAt = day.set({ hour: endHour, minute: endMinute })
+  // An end at or before the start means the shift runs past midnight.
+  if (endsAt <= startsAt) endsAt = endsAt.plus({ days: 1 })
+
+  const { error } = await supabase.from("shifts").insert({
+    location_id: input.locationId,
+    starts_at: startsAt.toUTC().toISO(),
+    ends_at: endsAt.toUTC().toISO(),
+    required_skill_id: input.skillId,
+    headcount: input.headcount,
+    published: false,
+    created_by: user.id,
+  })
+  if (error) return { ok: false, message: error.message }
+
+  revalidatePath("/schedule")
+  return { ok: true }
+}
+
 export async function setWeekPublished(
   locationId: string,
   weekOffset: number,

@@ -6,7 +6,7 @@ import { toast } from "sonner"
 import { HugeiconsIcon } from "@hugeicons/react"
 import { ArrowLeft01Icon, ArrowRight01Icon } from "@hugeicons/core-free-icons"
 
-import type { LocationSummary, WeekBoard } from "@/lib/data/schedule"
+import type { LocationSummary, SkillOption, WeekBoard } from "@/lib/data/schedule"
 import { setWeekPublished } from "@/app/(app)/schedule/actions"
 import { useRealtimeRefresh } from "@/hooks/use-realtime-refresh"
 import { cn } from "@/lib/utils"
@@ -24,11 +24,13 @@ import { NewShiftDialog } from "@/components/schedule/new-shift-dialog"
 
 export function ScheduleBoard({
   locations,
+  skills,
   location,
   board,
   weekOffset,
 }: {
   locations: LocationSummary[]
+  skills: SkillOption[]
   location: LocationSummary
   board: WeekBoard
   weekOffset: number
@@ -115,7 +117,12 @@ export function ScheduleBoard({
           >
             {board.published ? "Unpublish" : "Publish week"}
           </Button>
-          <NewShiftDialog locationName={location.name} />
+          <NewShiftDialog
+            locations={locations}
+            skills={skills}
+            currentLocationId={location.id}
+            weekOffset={weekOffset}
+          />
         </div>
       </div>
 

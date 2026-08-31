@@ -1,48 +1,60 @@
 "use client"
 
-import * as React from "react"
+import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { ArrowDataTransferHorizontalIcon } from "@hugeicons/core-free-icons"
 
-import { useRole } from "@/components/role-provider"
-import { swapRequests, type SwapRequest, type SwapStatus } from "@/lib/mock/swaps"
-import { demoUsers } from "@/lib/mock/users"
+import { useSession } from "@/components/role-provider"
+import type { SwapRequestView, SwapStatus } from "@/lib/data/swaps"
+import {
+  acceptOffer,
+  approveRequest,
+  cancelRequest,
+  declineOffer,
+  denyRequest,
+} from "@/app/(app)/swaps/actions"
+import { useRealtimeRefresh } from "@/hooks/use-realtime-refresh"
 import { SectionCard } from "@/components/common/section-card"
 import { EmptyState } from "@/components/common/empty-state"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { RequestRow } from "@/components/swaps/request-row"
 
-const staffName = demoUsers.staff.name
-
 const statusLabel: Record<SwapStatus, string> = {
   pending_target: "Awaiting staff",
   pending_manager: "Awaiting manager",
   open: "Open",
+  approved: "Approved",
+  rejected: "Rejected",
+  cancelled: "Cancelled",
+  expired: "Expired",
 }
 
-export function SwapsView() {
-  const { role } = useRole()
-  const [requests, setRequests] = React.useState<SwapRequest[]>(swapRequests)
+export function SwapsView({ requests }: { requests: SwapRequestView[] }) {
+  const { id, role } = useSession()
+  const router = useRouter()
 
-  function resolve(id: string, message: string) {
-    setRequests((previous) => previous.filter((request) => request.id !== id))
-    toast.success(message)
+  useRealtimeRefresh(["swap_requests", "assignments"], "swaps")
+
+  async function run(promise: Promise<{ ok: boolean; message?: string }>, success: string) {
+    const result = await promise
+    if (result.ok) {
+      toast.success(success)
+      router.refresh()
+    } else {
+      toast.error(result.message ?? "Something went wrong.")
+    }
   }
 
   if (role === "staff") {
-    const incoming = requests.filter(
-      (request) => request.target === staffName && request.status === "pending_target",
+    const incoming = requests.filter((r) => r.targetId === id && r.status === "pending_target")
+    const mine = requests.filter(
+      (r) => r.requesterId === id && ["pending_target", "pending_manager", "open"].includes(r.status),
     )
-    const mine = requests.filter((request) => request.requester === staffName)
-    const upForGrabs = requests.filter((request) => request.status === "open")
+    const upForGrabs = requests.filter((r) => r.status === "open" && r.requesterId !== id)
 
     return (
       <div className="flex flex-col gap-4">
-        <p className="text-muted-foreground text-sm">
-          You have {mine.length + incoming.length} of 3 pending requests.
-        </p>
-
         <SectionCard title="Incoming swap offers">
           {incoming.length > 0 ? (
             <ul className="flex flex-col">
@@ -55,13 +67,13 @@ export function SwapsView() {
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => resolve(request.id, "Swap declined")}
+                        onClick={() => run(declineOffer(request.id), "Swap declined")}
                       >
                         Decline
                       </Button>
                       <Button
                         size="sm"
-                        onClick={() => resolve(request.id, "Swap accepted, sent for approval")}
+                        onClick={() => run(acceptOffer(request.id), "Swap accepted, sent for approval")}
                       >
                         Accept
                       </Button>
@@ -88,7 +100,7 @@ export function SwapsView() {
                       <Button
                         size="sm"
                         variant="ghost"
-                        onClick={() => resolve(request.id, "Request cancelled")}
+                        onClick={() => run(cancelRequest(request.id), "Request cancelled")}
                       >
                         Cancel
                       </Button>
@@ -112,7 +124,7 @@ export function SwapsView() {
                   actions={
                     <Button
                       size="sm"
-                      onClick={() => resolve(request.id, "Shift claimed, sent for approval")}
+                      onClick={() => run(acceptOffer(request.id), "Sent for approval")}
                     >
                       Claim
                     </Button>
@@ -128,8 +140,8 @@ export function SwapsView() {
     )
   }
 
-  const awaiting = requests.filter((request) => request.status === "pending_manager")
-  const inProgress = requests.filter((request) => request.status !== "pending_manager")
+  const awaiting = requests.filter((r) => r.status === "pending_manager")
+  const inProgress = requests.filter((r) => ["pending_target", "open"].includes(r.status))
 
   return (
     <div className="flex flex-col gap-4">
@@ -145,11 +157,19 @@ export function SwapsView() {
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={() => resolve(request.id, "Change denied")}
+                      onClick={() => run(denyRequest(request.id), "Change denied")}
                     >
                       Deny
                     </Button>
-                    <Button size="sm" onClick={() => resolve(request.id, "Change approved")}>
+                    <Button
+                      size="sm"
+                      onClick={() =>
+                        run(
+                          approveRequest(request.id, request.type, request.assignmentId),
+                          "Change approved",
+                        )
+                      }
+                    >
                       Approve
                     </Button>
                   </>

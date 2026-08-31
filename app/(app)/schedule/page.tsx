@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server"
-import { getLocations, getWeekBoard } from "@/lib/data/schedule"
+import { getLocations, getSkills, getWeekBoard } from "@/lib/data/schedule"
 import { PageHeader } from "@/components/common/page-header"
 import { ScheduleBoard } from "@/components/schedule/schedule-board"
 
@@ -10,10 +10,9 @@ export default async function SchedulePage({
 }) {
   const params = await searchParams
   const supabase = await createClient()
-  const locations = await getLocations(supabase)
+  const [locations, skills] = await Promise.all([getLocations(supabase), getSkills(supabase)])
 
-  const location =
-    locations.find((item) => item.id === params.loc) ?? locations[0]
+  const location = locations.find((item) => item.id === params.loc) ?? locations[0]
   const weekOffset = Number.parseInt(params.wk ?? "0", 10) || 0
   const board = await getWeekBoard(supabase, location, weekOffset)
 
@@ -22,6 +21,7 @@ export default async function SchedulePage({
       <PageHeader title="Schedule" description="Build, assign, and publish the weekly schedule." />
       <ScheduleBoard
         locations={locations}
+        skills={skills}
         location={location}
         board={board}
         weekOffset={weekOffset}

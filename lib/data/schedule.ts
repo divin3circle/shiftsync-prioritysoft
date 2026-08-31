@@ -59,6 +59,13 @@ export function weekBounds(timezone: string, offset: number) {
   return { start, end }
 }
 
+export type SkillOption = { id: string; name: string }
+
+export async function getSkills(supabase: SupabaseClient): Promise<SkillOption[]> {
+  const { data } = await supabase.from("skills").select("id, name").order("name")
+  return (data ?? []).map((row) => ({ id: row.id, name: row.name }))
+}
+
 export async function getLocations(supabase: SupabaseClient): Promise<LocationSummary[]> {
   const { data } = await supabase.from("locations").select("id, name, timezone").order("name")
   return (data ?? []).map((row) => ({
