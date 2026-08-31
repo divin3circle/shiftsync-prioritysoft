@@ -8,6 +8,7 @@ import { ArrowLeft01Icon, ArrowRight01Icon } from "@hugeicons/core-free-icons"
 
 import type { LocationSummary, WeekBoard } from "@/lib/data/schedule"
 import { setWeekPublished } from "@/app/(app)/schedule/actions"
+import { useRealtimeRefresh } from "@/hooks/use-realtime-refresh"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -34,6 +35,8 @@ export function ScheduleBoard({
 }) {
   const router = useRouter()
   const [publishing, startPublishing] = React.useTransition()
+
+  useRealtimeRefresh(["shifts", "assignments"], "schedule-board")
 
   function go(next: { loc?: string; wk?: number }) {
     const loc = next.loc ?? location.id
