@@ -33,6 +33,9 @@ function toMinutes(value: string): number {
 }
 
 function isWithinAvailability(proposal: ProposedShift, context: StaffContext): boolean {
+  // No declared windows means no stated restriction, so treat as available.
+  if (context.availability.length === 0) return true
+
   const start = DateTime.fromJSDate(proposal.start).setZone(context.availabilityZone)
   const end = DateTime.fromJSDate(proposal.end).setZone(context.availabilityZone)
   const startMinutes = start.hour * 60 + start.minute

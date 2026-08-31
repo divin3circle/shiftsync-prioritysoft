@@ -100,6 +100,11 @@ describe("checkAssignment", () => {
     expect(rulesOf(result)).toContain("availability")
   })
 
+  test("treats no declared availability as available", () => {
+    const result = checkAssignment(baseProposal(), baseContext({ availability: [] }))
+    expect(rulesOf(result)).not.toContain("availability")
+  })
+
   test("warns when daily hours exceed eight", () => {
     const context = baseContext({
       existingShifts: [
