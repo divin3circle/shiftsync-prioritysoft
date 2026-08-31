@@ -57,16 +57,14 @@ Where things live:
 
 - No stated availability means available. Most people did not fill in fixed hours, so the app does not treat a blank as "never available."
 - Overtime is a warning, not a wall. Managers can approve it, which fits how real restaurants handle a short-staffed rush. The approval is recorded.
-- The seed data is built for the current week, so the schedule board and dashboard show real shifts during review. Use the week arrows to move around.
+- The seed data is built for the current week, so the schedule board and dashboard show real shifts during review. Use the week arrows to move around. Opened much later than the review window, the current-week views will look empty until you navigate.
 - One shared password across the demo accounts keeps sign-in simple for review.
-- Manager write access is by role. The data model can also scope managers to specific locations, which is a natural next step but not turned on.
+- Managers are scoped to the locations they run (Marcus runs Harbor Grill and Pier Seven). They can view any schedule but can only add, edit, publish, and assign at their own locations. Admins are unrestricted.
 
 ## Known limitations
 
-- The schedule board, dashboard, my shifts, and open shifts run on live data. Some secondary manager screens (overtime, fairness, on duty, audit, roster, notifications) still show representative sample data.
-- The "New shift" dialog on the schedule board is a visual placeholder and does not create a shift yet.
-- Staff can request a drop or a swap, and it reaches managers, but the manager approval screen is not fully wired.
-- Email delivery is modeled as a preference only. No emails are actually sent.
+- Every screen runs on live data. The one exception is email: the pipeline is built and deployed (see below) but no email actually sends until an email provider key is configured.
+- The current-week seed anchoring above is a demo convenience, not something a production build would rely on.
 
 ## Running it locally
 
@@ -85,5 +83,30 @@ supabase db push
 supabase db query --linked -f supabase/seed.sql
 
 bun run dev      # http://localhost:3000
-bun test         # run the rules engine tests
+bun test         # rules engine + helper unit tests
+```
+
+### Tests
+
+`bun test` always runs the pure unit tests (the constraint engine and helpers).
+There is also a database integration suite that exercises the real guarantees
+(double-booking rejection under concurrency, row level security isolation,
+self-service and manager-location guards). It is skipped unless credentials are
+present:
+
+```bash
+NEXT_PUBLIC_SUPABASE_URL=... NEXT_PUBLIC_SUPABASE_ANON_KEY=... \
+  SUPABASE_SERVICE_ROLE_KEY=... bun test
+```
+
+### Email
+
+Email delivery is wired end to end: a Postgres trigger calls the
+`notify-email` edge function whenever a notification is created, the call is
+asynchronous so it never blocks the notification, and the function respects each
+user's email preference. It sends real mail once a provider key is set:
+
+```bash
+supabase functions deploy notify-email
+supabase secrets set RESEND_API_KEY=your-key NOTIFY_FROM="ShiftSync <you@yourdomain>"
 ```
