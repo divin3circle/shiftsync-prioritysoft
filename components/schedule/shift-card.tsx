@@ -1,9 +1,10 @@
 import { HugeiconsIcon } from "@hugeicons/react"
 import { StarIcon } from "@hugeicons/core-free-icons"
 
-import type { BoardShift } from "@/lib/data/schedule"
+import type { BoardShift, SkillOption } from "@/lib/data/schedule"
 import { cn } from "@/lib/utils"
 import { AssignDialog } from "@/components/schedule/assign-dialog"
+import { EditShiftDialog } from "@/components/schedule/edit-shift-dialog"
 
 function CardBody({ shift }: { shift: BoardShift }) {
   return (
@@ -31,13 +32,26 @@ function CardBody({ shift }: { shift: BoardShift }) {
   )
 }
 
-export function ShiftCard({ shift, canAssign }: { shift: BoardShift; canAssign: boolean }) {
+const interactiveClass =
+  "hover:bg-muted focus-visible:ring-ring/40 outline-none focus-visible:ring-2"
+
+export function ShiftCard({
+  shift,
+  canAssign,
+  skills,
+}: {
+  shift: BoardShift
+  canAssign: boolean
+  skills: SkillOption[]
+}) {
   const cardClass = cn(
     "w-full rounded-lg border p-2 text-left text-xs transition-colors",
     shift.isOpen && "border-destructive/40 border-dashed",
   )
 
-  if (!shift.isOpen || !canAssign) {
+  // Managers who can act on this location get an open shift's assign dialog, or
+  // an edit dialog for a filled shift. Everyone else sees a static card.
+  if (!canAssign) {
     return (
       <div className={cardClass}>
         <CardBody shift={shift} />
@@ -45,21 +59,21 @@ export function ShiftCard({ shift, canAssign }: { shift: BoardShift; canAssign: 
     )
   }
 
-  return (
-    <AssignDialog
-      shiftId={shift.id}
-      title={`${shift.requiredSkill} needed, ${shift.startLabel} - ${shift.endLabel}`}
-      trigger={
-        <button
-          type="button"
-          className={cn(
-            cardClass,
-            "hover:bg-muted focus-visible:ring-ring/40 outline-none focus-visible:ring-2",
-          )}
-        >
-          <CardBody shift={shift} />
-        </button>
-      }
-    />
+  const trigger = (
+    <button type="button" className={cn(cardClass, interactiveClass)}>
+      <CardBody shift={shift} />
+    </button>
   )
+
+  if (shift.isOpen) {
+    return (
+      <AssignDialog
+        shiftId={shift.id}
+        title={`${shift.requiredSkill} needed, ${shift.startLabel} - ${shift.endLabel}`}
+        trigger={trigger}
+      />
+    )
+  }
+
+  return <EditShiftDialog shift={shift} skills={skills} trigger={trigger} />
 }

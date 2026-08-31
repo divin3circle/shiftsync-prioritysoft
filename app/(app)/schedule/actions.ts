@@ -2,6 +2,8 @@
 
 import { revalidatePath } from "next/cache"
 
+import { DateTime } from "luxon"
+
 import { createClient } from "@/lib/supabase/server"
 import { getSessionUser } from "@/lib/auth"
 import { evaluateAssignment, commitAssignment } from "@/lib/data/assignment"
@@ -146,6 +148,67 @@ export async function createShift(input: NewShiftInput): Promise<{ ok: boolean; 
     published: false,
     created_by: user.id,
   })
+  if (error) return { ok: false, message: error.message }
+
+  revalidatePath("/schedule")
+  return { ok: true }
+}
+
+export async function updateShift(
+  shiftId: string,
+  input: { startTime: string; endTime: string; skillId: string; headcount: number },
+): Promise<{ ok: boolean; message?: string }> {
+  const user = await requireManager()
+  if (!user) return { ok: false, message: "Only managers can edit shifts." }
+
+  const supabase = await createClient()
+  const { data: shift } = await supabase
+    .from("shifts")
+    .select("starts_at, locations(timezone)")
+    .eq("id", shiftId)
+    .single()
+  if (!shift) return { ok: false, message: "Shift not found." }
+
+  const location = Array.isArray(shift.locations) ? shift.locations[0] : shift.locations
+  const tz = (location?.timezone as string) ?? "America/Los_Angeles"
+  const day = DateTime.fromISO(shift.starts_at as string, { zone: "utc" }).setZone(tz).startOf("day")
+
+  const [startHour, startMinute] = input.startTime.split(":").map(Number)
+  const [endHour, endMinute] = input.endTime.split(":").map(Number)
+  const startsAt = day.set({ hour: startHour, minute: startMinute })
+  let endsAt = day.set({ hour: endHour, minute: endMinute })
+  if (endsAt <= startsAt) endsAt = endsAt.plus({ days: 1 })
+
+  // Move any assignments first: if the new time double-books someone, the
+  // exclusion constraint rejects it and the shift is left untouched.
+  const cascade = await supabase
+    .from("assignments")
+    .update({ starts_at: startsAt.toUTC().toISO(), ends_at: endsAt.toUTC().toISO() })
+    .eq("shift_id", shiftId)
+    .eq("status", "active")
+  if (cascade.error) return { ok: false, message: cascade.error.message }
+
+  const { error } = await supabase
+    .from("shifts")
+    .update({
+      starts_at: startsAt.toUTC().toISO(),
+      ends_at: endsAt.toUTC().toISO(),
+      required_skill_id: input.skillId,
+      headcount: input.headcount,
+    })
+    .eq("id", shiftId)
+  if (error) return { ok: false, message: error.message }
+
+  revalidatePath("/schedule")
+  return { ok: true }
+}
+
+export async function deleteShift(shiftId: string): Promise<{ ok: boolean; message?: string }> {
+  const user = await requireManager()
+  if (!user) return { ok: false, message: "Only managers can remove shifts." }
+
+  const supabase = await createClient()
+  const { error } = await supabase.from("shifts").delete().eq("id", shiftId)
   if (error) return { ok: false, message: error.message }
 
   revalidatePath("/schedule")

@@ -153,7 +153,12 @@ export function ScheduleBoard({
                 <div className="flex flex-col gap-2">
                   {day.shifts.length > 0 ? (
                     day.shifts.map((shift) => (
-                      <ShiftCard key={shift.id} shift={shift} canAssign={canManage} />
+                      <ShiftCard
+                        key={shift.id}
+                        shift={shift}
+                        canAssign={canManage}
+                        skills={skills}
+                      />
                     ))
                   ) : (
                     <div className="text-muted-foreground/60 rounded-lg border border-dashed px-2 py-6 text-center text-xs">

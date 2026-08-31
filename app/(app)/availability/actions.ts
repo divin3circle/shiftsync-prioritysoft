@@ -41,3 +41,36 @@ export async function saveAvailability(days: DayWindow[]): Promise<{ ok: boolean
   revalidatePath("/availability")
   return { ok: true }
 }
+
+export async function addException(
+  date: string,
+  kind: "available" | "unavailable",
+  note: string,
+): Promise<{ ok: boolean; message?: string }> {
+  const user = await getSessionUser()
+  if (!user) return { ok: false, message: "Please sign in again." }
+
+  const supabase = await createClient()
+  const { error } = await supabase.from("availability_exceptions").insert({
+    profile_id: user.id,
+    exception_date: date,
+    kind,
+    note: note || null,
+  })
+  if (error) return { ok: false, message: error.message }
+
+  revalidatePath("/availability")
+  return { ok: true }
+}
+
+export async function removeException(id: string): Promise<{ ok: boolean; message?: string }> {
+  const user = await getSessionUser()
+  if (!user) return { ok: false, message: "Please sign in again." }
+
+  const supabase = await createClient()
+  const { error } = await supabase.from("availability_exceptions").delete().eq("id", id)
+  if (error) return { ok: false, message: error.message }
+
+  revalidatePath("/availability")
+  return { ok: true }
+}

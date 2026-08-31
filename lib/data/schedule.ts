@@ -16,7 +16,10 @@ export type BoardShift = {
   startMs: number
   startLabel: string
   endLabel: string
+  startTime: string
+  endTime: string
   requiredSkill: string
+  requiredSkillId: string
   headcount: number
   premium: boolean
   published: boolean
@@ -97,7 +100,10 @@ function toBoardShift(row: Record<string, unknown>, timezone: string): BoardShif
     startMs: start.toMillis(),
     startLabel: start.toFormat("h:mm a"),
     endLabel: end.toFormat("h:mm a"),
+    startTime: start.toFormat("HH:mm"),
+    endTime: end.toFormat("HH:mm"),
     requiredSkill: pickName(row.skills),
+    requiredSkillId: (row.required_skill_id as string) ?? "",
     headcount,
     premium: row.is_premium as boolean,
     published: row.published as boolean,
@@ -116,7 +122,7 @@ export async function getWeekBoard(
   const { data } = await supabase
     .from("shifts")
     .select(
-      "id, starts_at, ends_at, headcount, is_premium, published, skills(name), assignments(status, staff:profiles!assignments_staff_id_fkey(id, full_name))",
+      "id, starts_at, ends_at, headcount, is_premium, published, required_skill_id, skills(name), assignments(status, staff:profiles!assignments_staff_id_fkey(id, full_name))",
     )
     .eq("location_id", location.id)
     .gte("starts_at", start.toUTC().toISO())
