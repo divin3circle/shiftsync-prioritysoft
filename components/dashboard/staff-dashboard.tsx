@@ -5,7 +5,7 @@ import {
   Tag01Icon,
 } from "@hugeicons/core-free-icons"
 
-import { staffStats, staffUpcoming, staffActivity } from "@/lib/mock/dashboard"
+import type { DashboardStat, ShiftRow, DashboardAlert } from "@/lib/mock/dashboard"
 import { StatCard } from "@/components/common/stat-card"
 import { SectionCard } from "@/components/common/section-card"
 import { LinkButton } from "@/components/common/link-button"
@@ -14,11 +14,15 @@ import { AlertList } from "@/components/dashboard/alert-list"
 
 const statIcons = [Calendar02Icon, Time04Icon, ArrowDataTransferHorizontalIcon, Tag01Icon]
 
-export function StaffDashboard() {
+export function StaffDashboard({
+  data,
+}: {
+  data: { stats: DashboardStat[]; upcoming: ShiftRow[]; activity: DashboardAlert[] }
+}) {
   return (
     <div className="flex flex-col gap-6">
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {staffStats.map((stat, index) => (
+        {data.stats.map((stat, index) => (
           <StatCard key={stat.label} {...stat} icon={statIcons[index]} />
         ))}
       </div>
@@ -31,7 +35,7 @@ export function StaffDashboard() {
             </LinkButton>
           }
         >
-          <ShiftList rows={staffUpcoming} />
+          <ShiftList rows={data.upcoming} />
         </SectionCard>
         <SectionCard
           title="Recent activity"
@@ -41,7 +45,7 @@ export function StaffDashboard() {
             </LinkButton>
           }
         >
-          <AlertList alerts={staffActivity} />
+          <AlertList alerts={data.activity} />
         </SectionCard>
       </div>
     </div>

@@ -5,7 +5,7 @@ import {
   AnalyticsUpIcon,
 } from "@hugeicons/core-free-icons"
 
-import { managerStats, managerToday, managerAlerts } from "@/lib/mock/dashboard"
+import type { DashboardStat, ShiftRow, DashboardAlert } from "@/lib/mock/dashboard"
 import { StatCard } from "@/components/common/stat-card"
 import { SectionCard } from "@/components/common/section-card"
 import { LinkButton } from "@/components/common/link-button"
@@ -14,11 +14,15 @@ import { AlertList } from "@/components/dashboard/alert-list"
 
 const statIcons = [Clock01Icon, Tag01Icon, ArrowDataTransferHorizontalIcon, AnalyticsUpIcon]
 
-export function ManagerDashboard() {
+export function ManagerDashboard({
+  data,
+}: {
+  data: { stats: DashboardStat[]; today: ShiftRow[]; alerts: DashboardAlert[] }
+}) {
   return (
     <div className="flex flex-col gap-6">
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {managerStats.map((stat, index) => (
+        {data.stats.map((stat, index) => (
           <StatCard key={stat.label} {...stat} icon={statIcons[index]} />
         ))}
       </div>
@@ -31,7 +35,7 @@ export function ManagerDashboard() {
             </LinkButton>
           }
         >
-          <ShiftList rows={managerToday} />
+          <ShiftList rows={data.today} />
         </SectionCard>
         <SectionCard
           title="Needs attention"
@@ -41,7 +45,7 @@ export function ManagerDashboard() {
             </LinkButton>
           }
         >
-          <AlertList alerts={managerAlerts} />
+          <AlertList alerts={data.alerts} />
         </SectionCard>
       </div>
     </div>
