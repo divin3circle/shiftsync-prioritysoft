@@ -17,7 +17,7 @@ export type StaffMetric = {
   scheduling: SchedulingStatus
 }
 
-function longestStreak(dates: Set<string>): number {
+export function longestStreak(dates: Set<string>): number {
   if (dates.size === 0) return 0
   const sorted = [...dates].sort()
   let best = 1
