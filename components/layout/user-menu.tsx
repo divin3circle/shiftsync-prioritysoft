@@ -1,12 +1,12 @@
 "use client"
 
 import Link from "next/link"
-import { toast } from "sonner"
+import { useRouter } from "next/navigation"
 import { HugeiconsIcon } from "@hugeicons/react"
 import { Settings01Icon, Logout01Icon } from "@hugeicons/core-free-icons"
 
-import { useRole } from "@/components/role-provider"
-import { demoUsers } from "@/lib/mock/users"
+import { useSession } from "@/components/role-provider"
+import { createClient } from "@/lib/supabase/client"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import {
@@ -20,8 +20,14 @@ import {
 } from "@/components/ui/dropdown-menu"
 
 export function UserMenu() {
-  const { role } = useRole()
-  const user = demoUsers[role]
+  const router = useRouter()
+  const user = useSession()
+
+  async function signOut() {
+    await createClient().auth.signOut()
+    router.push("/login")
+    router.refresh()
+  }
 
   return (
     <DropdownMenu>
@@ -47,7 +53,7 @@ export function UserMenu() {
           Settings
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={() => toast.info("Sign out arrives with authentication")}>
+        <DropdownMenuItem onClick={signOut}>
           <HugeiconsIcon icon={Logout01Icon} />
           Sign out
         </DropdownMenuItem>

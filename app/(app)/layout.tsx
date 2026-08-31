@@ -1,13 +1,18 @@
 import type { ReactNode } from "react"
+import { redirect } from "next/navigation"
 
+import { getSessionUser } from "@/lib/auth"
 import { RoleProvider } from "@/components/role-provider"
 import { AppSidebar } from "@/components/layout/app-sidebar"
 import { Topbar } from "@/components/layout/topbar"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 
-export default function AppLayout({ children }: { children: ReactNode }) {
+export default async function AppLayout({ children }: { children: ReactNode }) {
+  const user = await getSessionUser()
+  if (!user) redirect("/login")
+
   return (
-    <RoleProvider>
+    <RoleProvider user={user}>
       <SidebarProvider>
         <AppSidebar />
         <SidebarInset>

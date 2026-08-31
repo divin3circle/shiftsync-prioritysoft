@@ -3,26 +3,35 @@
 import * as React from "react"
 
 import type { Role } from "@/lib/roles"
-import { usePersistentRole } from "@/hooks/use-persistent-role"
 
-type RoleContextValue = {
+export type SessionUser = {
+  id: string
+  name: string
+  email: string
   role: Role
-  setRole: (role: Role) => void
+  initials: string
 }
 
-const RoleContext = React.createContext<RoleContextValue | null>(null)
+const SessionContext = React.createContext<SessionUser | null>(null)
 
-export function RoleProvider({ children }: { children: React.ReactNode }) {
-  const [role, setRole] = usePersistentRole()
-  const value = React.useMemo(() => ({ role, setRole }), [role, setRole])
+export function RoleProvider({
+  user,
+  children,
+}: {
+  user: SessionUser
+  children: React.ReactNode
+}) {
+  return <SessionContext value={user}>{children}</SessionContext>
+}
 
-  return <RoleContext value={value}>{children}</RoleContext>
+export function useSession() {
+  const user = React.useContext(SessionContext)
+  if (!user) {
+    throw new Error("useSession must be used within a RoleProvider")
+  }
+  return user
 }
 
 export function useRole() {
-  const context = React.useContext(RoleContext)
-  if (!context) {
-    throw new Error("useRole must be used within a RoleProvider")
-  }
-  return context
+  return { role: useSession().role }
 }

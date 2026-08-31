@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation"
 import { HugeiconsIcon } from "@hugeicons/react"
 import { Store01Icon } from "@hugeicons/core-free-icons"
 
-import { usePersistentRole } from "@/hooks/use-persistent-role"
+import { createClient } from "@/lib/supabase/client"
 import { demoUsers } from "@/lib/mock/users"
 import { ROLES, ROLE_LABELS, type Role } from "@/lib/roles"
 import { Button } from "@/components/ui/button"
@@ -19,21 +19,44 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 
+const demoPassword = "coastaleats"
+
 export function LoginForm() {
   const router = useRouter()
-  const [, setRole] = usePersistentRole()
   const [email, setEmail] = React.useState("manager@coastaleats.com")
   const [password, setPassword] = React.useState("")
+  const [error, setError] = React.useState<string | null>(null)
+  const [pending, setPending] = React.useState(false)
+
+  async function signIn(withEmail: string, withPassword: string) {
+    setPending(true)
+    setError(null)
+
+    const supabase = createClient()
+    const { error } = await supabase.auth.signInWithPassword({
+      email: withEmail,
+      password: withPassword,
+    })
+
+    if (error) {
+      setError(error.message)
+      setPending(false)
+      return
+    }
+
+    router.push("/dashboard")
+    router.refresh()
+  }
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    router.push("/dashboard")
+    signIn(email, password)
   }
 
   function signInAs(role: Role) {
-    setRole(role)
     setEmail(demoUsers[role].email)
-    router.push("/dashboard")
+    setPassword(demoPassword)
+    signIn(demoUsers[role].email, demoPassword)
   }
 
   return (
@@ -67,10 +90,12 @@ export function LoginForm() {
               value={password}
               onChange={(event) => setPassword(event.target.value)}
               placeholder="Enter your password"
+              required
             />
           </div>
-          <Button type="submit" className="mt-1 w-full">
-            Sign in
+          {error ? <p className="text-destructive text-sm">{error}</p> : null}
+          <Button type="submit" className="mt-1 w-full" disabled={pending}>
+            {pending ? "Signing in..." : "Sign in"}
           </Button>
         </form>
 
@@ -87,6 +112,7 @@ export function LoginForm() {
                 type="button"
                 variant="outline"
                 size="sm"
+                disabled={pending}
                 onClick={() => signInAs(role)}
               >
                 {ROLE_LABELS[role]}

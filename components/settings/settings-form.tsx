@@ -3,8 +3,7 @@
 import * as React from "react"
 import { toast } from "sonner"
 
-import { useRole } from "@/components/role-provider"
-import { demoUsers } from "@/lib/mock/users"
+import { useSession } from "@/components/role-provider"
 import { SectionCard } from "@/components/common/section-card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -28,9 +27,8 @@ function useToggles(initial: ToggleRow[]) {
 }
 
 export function SettingsForm() {
-  const { role } = useRole()
-  const user = demoUsers[role]
-  const isManager = role !== "staff"
+  const user = useSession()
+  const isManager = user.role !== "staff"
 
   const [categories, setCategory] = useToggles([
     { id: "shifts", label: "New shifts assigned", description: "When a shift is added to your schedule", enabled: true },

@@ -6,7 +6,6 @@ import { findNavTitle } from "@/lib/nav"
 import { SidebarTrigger } from "@/components/ui/sidebar"
 import { Separator } from "@/components/ui/separator"
 import { ThemeToggle } from "@/components/layout/theme-toggle"
-import { RoleSwitcher } from "@/components/layout/role-switcher"
 import { UserMenu } from "@/components/layout/user-menu"
 import { NotificationsButton } from "@/components/layout/notifications-button"
 
@@ -20,7 +19,6 @@ export function Topbar() {
       <Separator orientation="vertical" className="mr-1 h-5" />
       <h1 className="text-sm font-medium">{title}</h1>
       <div className="ml-auto flex items-center gap-1">
-        <RoleSwitcher />
         <NotificationsButton />
         <ThemeToggle />
         <UserMenu />
