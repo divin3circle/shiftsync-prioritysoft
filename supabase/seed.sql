@@ -244,4 +244,9 @@ insert into notification_prefs (profile_id, email_enabled, categories) values
 
 insert into notifications (user_id, type, title, body, read) values
   ('b0000000-0000-0000-0000-000000000001', 'schedule', 'This week is published', 'Your shifts for the week of September 1 are ready to view.', true),
-  ('b0000000-0000-0000-0000-000000000003', 'swap', 'Sofia asked you to cover a shift', 'Thursday 4:00 PM at Harbor Grill. Respond by Thursday noon.', false);
+  ('b0000000-0000-0000-0000-000000000003', 'swap', 'Sofia asked you to cover a shift', 'Thursday 4:00 PM at Harbor Grill. Respond by Thursday noon.', false),
+  ('a0000000-0000-0000-0000-000000000002', 'swap', 'Swap request needs review', 'Sofia Alvarez asked to swap her Thursday shift at Harbor Grill.', false),
+  ('a0000000-0000-0000-0000-000000000002', 'overtime', 'Priya Shah nearing overtime', 'Booked 41 hours this week at Pier Seven.', false),
+  ('a0000000-0000-0000-0000-000000000002', 'schedule', 'Draft ready for next week', 'Two Pier Seven shifts are waiting to be published.', true),
+  ('a0000000-0000-0000-0000-000000000001', 'overtime', 'Overtime override logged', 'Priya Shah approved for 41 hours at Pier Seven.', false),
+  ('a0000000-0000-0000-0000-000000000001', 'coverage', 'Coverage gaps this week', 'Four shifts across the group still need staff.', false);

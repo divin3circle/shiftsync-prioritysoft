@@ -3,13 +3,14 @@
 import { usePathname } from "next/navigation"
 
 import { findNavTitle } from "@/lib/nav"
+import type { NotificationItem } from "@/lib/notification-item"
 import { SidebarTrigger } from "@/components/ui/sidebar"
 import { Separator } from "@/components/ui/separator"
 import { ThemeToggle } from "@/components/layout/theme-toggle"
 import { UserMenu } from "@/components/layout/user-menu"
 import { NotificationsButton } from "@/components/layout/notifications-button"
 
-export function Topbar() {
+export function Topbar({ notifications }: { notifications: NotificationItem[] }) {
   const pathname = usePathname()
   const title = findNavTitle(pathname) ?? "ShiftSync"
 
@@ -19,7 +20,7 @@ export function Topbar() {
       <Separator orientation="vertical" className="mr-1 h-5" />
       <h1 className="text-sm font-medium">{title}</h1>
       <div className="ml-auto flex items-center gap-1">
-        <NotificationsButton />
+        <NotificationsButton initial={notifications} />
         <ThemeToggle />
         <UserMenu />
       </div>

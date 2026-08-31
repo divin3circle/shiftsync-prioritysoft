@@ -1,10 +1,10 @@
 "use client"
 
-import * as React from "react"
-import { toast } from "sonner"
 import { CheckmarkCircle02Icon } from "@hugeicons/core-free-icons"
 
-import { demoNotifications, type DemoNotification } from "@/lib/mock/notifications"
+import { useSession } from "@/components/role-provider"
+import { useNotifications } from "@/hooks/use-notifications"
+import type { NotificationItem } from "@/lib/notification-item"
 import { cn } from "@/lib/utils"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
@@ -14,7 +14,7 @@ function NotificationList({
   items,
   onRead,
 }: {
-  items: DemoNotification[]
+  items: NotificationItem[]
   onRead: (id: string) => void
 }) {
   return (
@@ -25,19 +25,19 @@ function NotificationList({
           onClick={() => onRead(item.id)}
           className={cn(
             "flex cursor-pointer gap-3 border-b p-4 last:border-b-0",
-            item.unread && "bg-muted/40",
+            !item.read && "bg-muted/40",
           )}
         >
           <span
             className={cn(
               "mt-1.5 size-2 shrink-0 rounded-full",
-              item.unread ? "bg-foreground" : "bg-border",
+              item.read ? "bg-border" : "bg-foreground",
             )}
           />
           <div className="flex flex-col gap-0.5">
             <div className="flex items-center gap-2">
               <span className="text-sm font-medium">{item.title}</span>
-              <span className="text-muted-foreground text-xs">{item.time}</span>
+              <span className="text-muted-foreground text-xs">{item.timeLabel}</span>
             </div>
             <span className="text-muted-foreground text-sm">{item.body}</span>
           </div>
@@ -47,19 +47,18 @@ function NotificationList({
   )
 }
 
-export function NotificationCenter() {
-  const [items, setItems] = React.useState<DemoNotification[]>(demoNotifications)
-  const unreadCount = items.filter((item) => item.unread).length
+export function NotificationCenter({ initial }: { initial: NotificationItem[] }) {
+  const { id } = useSession()
+  const { items, unreadCount, markRead, markAllRead } = useNotifications(id, initial)
 
-  function markRead(id: string) {
-    setItems((previous) =>
-      previous.map((item) => (item.id === id ? { ...item, unread: false } : item)),
+  if (items.length === 0) {
+    return (
+      <EmptyState
+        icon={CheckmarkCircle02Icon}
+        title="No notifications yet"
+        description="Updates about your shifts and requests will show up here."
+      />
     )
-  }
-
-  function markAllRead() {
-    setItems((previous) => previous.map((item) => ({ ...item, unread: false })))
-    toast.success("All caught up")
   }
 
   return (
@@ -82,7 +81,7 @@ export function NotificationCenter() {
 
       <TabsContent value="unread">
         {unreadCount > 0 ? (
-          <NotificationList items={items.filter((item) => item.unread)} onRead={markRead} />
+          <NotificationList items={items.filter((item) => !item.read)} onRead={markRead} />
         ) : (
           <EmptyState icon={CheckmarkCircle02Icon} title="You are all caught up" />
         )}
