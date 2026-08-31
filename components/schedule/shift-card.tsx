@@ -1,36 +1,65 @@
 import { HugeiconsIcon } from "@hugeicons/react"
 import { StarIcon } from "@hugeicons/core-free-icons"
 
-import type { ScheduleShift } from "@/lib/mock/schedule"
-import { formatRange } from "@/lib/format"
+import type { BoardShift } from "@/lib/data/schedule"
 import { cn } from "@/lib/utils"
+import { AssignDialog } from "@/components/schedule/assign-dialog"
 
-export function ShiftCard({ shift }: { shift: ScheduleShift }) {
-  const unfilled = shift.filled < shift.needed
-
+function CardBody({ shift }: { shift: BoardShift }) {
   return (
-    <button
-      type="button"
-      className={cn(
-        "hover:bg-muted focus-visible:ring-ring/40 w-full rounded-lg border p-2 text-left text-xs transition-colors outline-none focus-visible:ring-2",
-        unfilled && "border-destructive/40 border-dashed",
-      )}
-    >
+    <>
       <div className="flex items-center justify-between gap-1">
-        <span className="font-medium">{formatRange(shift.start, shift.end)}</span>
+        <span className="font-medium">
+          {shift.startLabel} - {shift.endLabel}
+        </span>
         {shift.premium ? (
           <HugeiconsIcon icon={StarIcon} className="text-muted-foreground size-3" />
         ) : null}
       </div>
-      <div className="text-muted-foreground mt-0.5">{shift.role}</div>
-      <div className={cn("mt-1 truncate", unfilled ? "text-destructive" : "font-medium")}>
-        {shift.assignee ?? "Unfilled"}
+      <div className="text-muted-foreground mt-0.5">{shift.requiredSkill}</div>
+      <div className={cn("mt-1 truncate", shift.isOpen ? "text-destructive" : "font-medium")}>
+        {shift.assignees.length > 0
+          ? shift.assignees.map((assignee) => assignee.name).join(", ")
+          : "Unfilled"}
       </div>
-      {shift.needed > 1 ? (
+      {shift.headcount > 1 ? (
         <div className="text-muted-foreground mt-0.5">
-          {shift.filled}/{shift.needed} filled
+          {shift.assignees.length}/{shift.headcount} filled
         </div>
       ) : null}
-    </button>
+    </>
+  )
+}
+
+export function ShiftCard({ shift }: { shift: BoardShift }) {
+  const cardClass = cn(
+    "w-full rounded-lg border p-2 text-left text-xs transition-colors",
+    shift.isOpen && "border-destructive/40 border-dashed",
+  )
+
+  if (!shift.isOpen) {
+    return (
+      <div className={cardClass}>
+        <CardBody shift={shift} />
+      </div>
+    )
+  }
+
+  return (
+    <AssignDialog
+      shiftId={shift.id}
+      title={`${shift.requiredSkill} needed, ${shift.startLabel} - ${shift.endLabel}`}
+      trigger={
+        <button
+          type="button"
+          className={cn(
+            cardClass,
+            "hover:bg-muted focus-visible:ring-ring/40 outline-none focus-visible:ring-2",
+          )}
+        >
+          <CardBody shift={shift} />
+        </button>
+      }
+    />
   )
 }
