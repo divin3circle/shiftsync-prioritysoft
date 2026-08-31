@@ -163,12 +163,7 @@ export function SwapsView({ requests }: { requests: SwapRequestView[] }) {
                     </Button>
                     <Button
                       size="sm"
-                      onClick={() =>
-                        run(
-                          approveRequest(request.id, request.type, request.assignmentId),
-                          "Change approved",
-                        )
-                      }
+                      onClick={() => run(approveRequest(request.id), "Change approved")}
                     >
                       Approve
                     </Button>
