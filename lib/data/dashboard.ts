@@ -2,7 +2,29 @@ import { DateTime } from "luxon"
 import type { SupabaseClient } from "@supabase/supabase-js"
 
 import { tzLabelFor } from "@/lib/data/schedule"
-import type { DashboardStat, ShiftRow, DashboardAlert } from "@/lib/mock/dashboard"
+
+export type DashboardStat = {
+  label: string
+  value: string
+  hint: string
+  emphasis?: "warning"
+}
+
+export type ShiftRow = {
+  id: string
+  location: string
+  when: string
+  person?: string
+  role: string
+  status: "on" | "upcoming" | "open"
+}
+
+export type DashboardAlert = {
+  id: string
+  title: string
+  detail: string
+  tone: "warning" | "info"
+}
 
 type ManagerDashboard = {
   stats: DashboardStat[]

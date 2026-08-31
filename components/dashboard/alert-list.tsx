@@ -1,7 +1,7 @@
 import { HugeiconsIcon } from "@hugeicons/react"
 import { Alert02Icon, InformationCircleIcon } from "@hugeicons/core-free-icons"
 
-import type { DashboardAlert } from "@/lib/mock/dashboard"
+import type { DashboardAlert } from "@/lib/data/dashboard"
 import { cn } from "@/lib/utils"
 
 export function AlertList({ alerts }: { alerts: DashboardAlert[] }) {

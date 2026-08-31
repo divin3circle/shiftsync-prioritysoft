@@ -5,7 +5,7 @@ import {
   AnalyticsUpIcon,
 } from "@hugeicons/core-free-icons"
 
-import type { DashboardStat, ShiftRow, DashboardAlert } from "@/lib/mock/dashboard"
+import type { DashboardStat, ShiftRow, DashboardAlert } from "@/lib/data/dashboard"
 import { StatCard } from "@/components/common/stat-card"
 import { SectionCard } from "@/components/common/section-card"
 import { LinkButton } from "@/components/common/link-button"

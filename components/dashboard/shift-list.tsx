@@ -1,4 +1,4 @@
-import type { ShiftRow } from "@/lib/mock/dashboard"
+import type { ShiftRow } from "@/lib/data/dashboard"
 import { Badge } from "@/components/ui/badge"
 
 const statusLabel: Record<ShiftRow["status"], string> = {
