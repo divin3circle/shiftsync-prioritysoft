@@ -9,6 +9,9 @@ import { mapNotification, type NotificationItem } from "@/lib/notification-item"
 export function useNotifications(userId: string, initial: NotificationItem[]) {
   const [items, setItems] = React.useState(initial)
   const supabase = React.useMemo(() => createClient(), [])
+  // Unique per hook instance so the topbar bell and the notifications page each
+  // get their own channel instead of clashing on a shared channel name.
+  const instanceId = React.useId()
 
   const refresh = React.useCallback(async () => {
     const { data } = await supabase
@@ -21,7 +24,7 @@ export function useNotifications(userId: string, initial: NotificationItem[]) {
 
   React.useEffect(() => {
     const channel = supabase
-      .channel(`notifications-${userId}`)
+      .channel(`notifications-${userId}-${instanceId}`)
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "notifications", filter: `user_id=eq.${userId}` },
@@ -31,7 +34,7 @@ export function useNotifications(userId: string, initial: NotificationItem[]) {
     return () => {
       supabase.removeChannel(channel)
     }
-  }, [supabase, userId, refresh])
+  }, [supabase, userId, instanceId, refresh])
 
   const markRead = React.useCallback(
     async (id: string) => {

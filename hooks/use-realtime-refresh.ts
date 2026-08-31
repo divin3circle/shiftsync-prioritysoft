@@ -8,10 +8,13 @@ import { createClient } from "@/lib/supabase/client"
 export function useRealtimeRefresh(tables: string[], channelName: string) {
   const router = useRouter()
   const key = tables.join(",")
+  // Keep the channel name unique per hook instance so two consumers never try
+  // to share (and clash on) the same channel.
+  const instanceId = React.useId()
 
   React.useEffect(() => {
     const supabase = createClient()
-    const channel = supabase.channel(channelName)
+    const channel = supabase.channel(`${channelName}-${instanceId}`)
 
     for (const table of key.split(",")) {
       channel.on("postgres_changes", { event: "*", schema: "public", table }, () => {
@@ -23,5 +26,5 @@ export function useRealtimeRefresh(tables: string[], channelName: string) {
     return () => {
       supabase.removeChannel(channel)
     }
-  }, [key, channelName, router])
+  }, [key, channelName, instanceId, router])
 }
