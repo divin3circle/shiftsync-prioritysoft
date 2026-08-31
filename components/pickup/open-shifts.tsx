@@ -1,60 +1,33 @@
 "use client"
 
 import * as React from "react"
+import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { Tag01Icon } from "@hugeicons/core-free-icons"
 
-import { scheduleByLocation } from "@/lib/mock/schedule"
-import { demoLocations } from "@/lib/mock/locations"
-import { demoStaff } from "@/lib/mock/staff"
-import { demoUsers } from "@/lib/mock/users"
-import { weekDayNames } from "@/lib/mock/schedule"
-import { formatRange } from "@/lib/format"
+import type { OpenShift } from "@/lib/data/staff-shifts"
+import { claimOpenShift } from "@/app/(app)/pickup/actions"
+import { useRealtimeRefresh } from "@/hooks/use-realtime-refresh"
 import { EmptyState } from "@/components/common/empty-state"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 
-const currentStaff = demoStaff.find((staff) => staff.name === demoUsers.staff.name) ?? demoStaff[0]
+export function OpenShifts({ shifts }: { shifts: OpenShift[] }) {
+  const router = useRouter()
+  const [pending, setPending] = React.useState<string | null>(null)
 
-function locationName(id: string) {
-  return demoLocations.find((item) => item.id === id)?.name ?? id
-}
+  useRealtimeRefresh(["shifts", "assignments"], "open-shifts")
 
-type OpenShift = {
-  key: string
-  location: string
-  when: string
-  role: string
-  qualified: boolean
-}
-
-function collectOpenShifts(): OpenShift[] {
-  const rows: OpenShift[] = []
-  for (const [locationId, shifts] of Object.entries(scheduleByLocation)) {
-    if (!currentStaff.locationIds.includes(locationId)) {
-      continue
+  async function claim(shiftId: string) {
+    setPending(shiftId)
+    const result = await claimOpenShift(shiftId)
+    setPending(null)
+    if (result.status === "claimed") {
+      toast.success("Shift claimed, added to your schedule")
+      router.refresh()
+    } else {
+      toast.error(result.message)
     }
-    for (const shift of shifts) {
-      if (shift.filled < shift.needed) {
-        rows.push({
-          key: `${locationId}-${shift.id}`,
-          location: locationName(locationId),
-          when: `${weekDayNames[shift.day]} ${formatRange(shift.start, shift.end)}`,
-          role: shift.role,
-          qualified: currentStaff.skills.includes(shift.role),
-        })
-      }
-    }
-  }
-  return rows
-}
-
-export function OpenShifts() {
-  const [shifts, setShifts] = React.useState<OpenShift[]>(collectOpenShifts)
-
-  function claim(key: string) {
-    setShifts((previous) => previous.filter((shift) => shift.key !== key))
-    toast.success("Shift claimed, sent for approval")
   }
 
   if (shifts.length === 0) {
@@ -71,21 +44,21 @@ export function OpenShifts() {
     <ul className="flex flex-col overflow-hidden rounded-xl border">
       {shifts.map((shift) => (
         <li
-          key={shift.key}
+          key={shift.shiftId}
           className="border-border/60 flex items-center justify-between gap-4 border-b p-4 last:border-b-0"
         >
           <div className="flex flex-col gap-0.5">
             <span className="text-sm font-medium">
               {shift.role} &middot; {shift.location}
             </span>
-            <span className="text-muted-foreground text-xs">{shift.when}</span>
+            <span className="text-muted-foreground text-xs">{shift.whenLabel}</span>
           </div>
-          {shift.qualified ? (
-            <Button size="sm" onClick={() => claim(shift.key)}>
+          {shift.canClaim ? (
+            <Button size="sm" disabled={pending === shift.shiftId} onClick={() => claim(shift.shiftId)}>
               Claim
             </Button>
           ) : (
-            <Badge variant="outline">Requires {shift.role}</Badge>
+            <Badge variant="outline">{shift.reason}</Badge>
           )}
         </li>
       ))}

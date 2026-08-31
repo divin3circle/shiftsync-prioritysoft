@@ -1,26 +1,36 @@
 "use client"
 
+import * as React from "react"
+import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { HugeiconsIcon } from "@hugeicons/react"
 import { Calendar02Icon, StarIcon } from "@hugeicons/core-free-icons"
 
-import { demoStaff } from "@/lib/mock/staff"
-import { demoUsers } from "@/lib/mock/users"
-import { demoLocations } from "@/lib/mock/locations"
-import { weekDayNames } from "@/lib/mock/schedule"
-import { shiftsForName } from "@/lib/schedule-utils"
-import { formatRange } from "@/lib/format"
+import type { StaffShift } from "@/lib/data/staff-shifts"
+import { requestCoverage } from "@/app/(app)/my-shifts/actions"
+import { useRealtimeRefresh } from "@/hooks/use-realtime-refresh"
 import { EmptyState } from "@/components/common/empty-state"
 import { Button } from "@/components/ui/button"
 
-const currentStaff = demoStaff.find((staff) => staff.name === demoUsers.staff.name) ?? demoStaff[0]
+export function MyShiftsList({ shifts }: { shifts: StaffShift[] }) {
+  const router = useRouter()
+  const [pending, setPending] = React.useState<string | null>(null)
 
-function locationName(id: string) {
-  return demoLocations.find((item) => item.id === id)?.name ?? id
-}
+  useRealtimeRefresh(["assignments", "swap_requests"], "my-shifts")
 
-export function MyShiftsList() {
-  const shifts = shiftsForName(currentStaff.name)
+  async function request(shift: StaffShift, type: "drop" | "swap") {
+    setPending(shift.assignmentId)
+    const result = await requestCoverage(shift.shiftId, shift.assignmentId, type)
+    setPending(null)
+    if (result.ok) {
+      toast.success(
+        type === "drop" ? "Drop request sent for approval" : "Swap request sent for approval",
+      )
+      router.refresh()
+    } else {
+      toast.error(result.message ?? "Could not send the request.")
+    }
+  }
 
   if (shifts.length === 0) {
     return (
@@ -36,34 +46,36 @@ export function MyShiftsList() {
     <ul className="flex flex-col overflow-hidden rounded-xl border">
       {shifts.map((shift) => (
         <li
-          key={`${shift.locationId}-${shift.id}`}
+          key={shift.assignmentId}
           className="border-border/60 flex items-center justify-between gap-4 border-b p-4 last:border-b-0"
         >
           <div className="flex flex-col gap-0.5">
             <div className="flex items-center gap-2">
               <span className="text-sm font-medium">
-                {weekDayNames[shift.day]} &middot; {formatRange(shift.start, shift.end)}
+                {shift.dayLabel} &middot; {shift.timeLabel}
               </span>
               {shift.premium ? (
                 <HugeiconsIcon icon={StarIcon} className="text-muted-foreground size-3.5" />
               ) : null}
             </div>
             <span className="text-muted-foreground text-xs">
-              {locationName(shift.locationId)} &middot; {shift.role}
+              {shift.location} &middot; {shift.role}
             </span>
           </div>
           <div className="flex items-center gap-2">
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => toast.success("Drop request sent for approval")}
+              disabled={pending === shift.assignmentId}
+              onClick={() => request(shift, "drop")}
             >
               Drop
             </Button>
             <Button
               variant="outline"
               size="sm"
-              onClick={() => toast.success("Swap request started")}
+              disabled={pending === shift.assignmentId}
+              onClick={() => request(shift, "swap")}
             >
               Swap
             </Button>
