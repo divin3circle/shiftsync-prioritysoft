@@ -1,5 +1,4 @@
-import type { SchedulingStatus } from "@/lib/mock/fairness"
-import { fairnessRows, fairnessSummary } from "@/lib/mock/fairness"
+import type { SchedulingStatus, StaffMetric } from "@/lib/data/staff-metrics"
 import { cn } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import { Card } from "@/components/ui/card"
@@ -25,18 +24,26 @@ const schedulingVariant: Record<SchedulingStatus, "secondary" | "outline"> = {
   over: "outline",
 }
 
-export function FairnessView() {
-  const maxPremium = Math.max(...fairnessRows.map((row) => row.premiumShifts))
+type FairnessSummary = { period: string; score: string; detail: string }
+
+export function FairnessView({
+  rows,
+  summary,
+}: {
+  rows: StaffMetric[]
+  summary: FairnessSummary
+}) {
+  const maxPremium = Math.max(1, ...rows.map((row) => row.premiumShifts))
 
   return (
     <div className="flex flex-col gap-4">
       <Card className="gap-2 p-5">
         <div className="flex items-center gap-2">
           <span className="text-muted-foreground text-sm">Premium shift fairness</span>
-          <Badge variant="outline">{fairnessSummary.period}</Badge>
+          <Badge variant="outline">{summary.period}</Badge>
         </div>
-        <span className="text-2xl font-semibold tracking-tight">{fairnessSummary.score}</span>
-        <p className="text-muted-foreground max-w-2xl text-sm">{fairnessSummary.detail}</p>
+        <span className="text-2xl font-semibold tracking-tight">{summary.score}</span>
+        <p className="text-muted-foreground max-w-2xl text-sm">{summary.detail}</p>
       </Card>
 
       <SectionCard title="Premium shifts by staff">
@@ -49,14 +56,12 @@ export function FairnessView() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {fairnessRows.map((row) => {
+            {rows.map((row) => {
               const none = row.premiumShifts === 0
               return (
-                <TableRow key={row.name}>
+                <TableRow key={row.id}>
                   <TableCell>
-                    <span className={cn("font-medium", none && "text-destructive")}>
-                      {row.name}
-                    </span>
+                    <span className={cn("font-medium", none && "text-destructive")}>{row.name}</span>
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2">

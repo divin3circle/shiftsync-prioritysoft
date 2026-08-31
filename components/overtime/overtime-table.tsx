@@ -1,5 +1,5 @@
-import type { OvertimeStatus } from "@/lib/mock/overtime"
-import { overtimeRows } from "@/lib/mock/overtime"
+import type { OvertimeStatus, StaffMetric } from "@/lib/data/staff-metrics"
+import { limits } from "@/lib/scheduling/types"
 import { cn } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import {
@@ -41,7 +41,7 @@ function HoursBar({ hours, status }: { hours: number; status: OvertimeStatus }) 
   )
 }
 
-export function OvertimeTable() {
+export function OvertimeTable({ rows }: { rows: StaffMetric[] }) {
   return (
     <div className="overflow-hidden rounded-xl border">
       <Table>
@@ -54,13 +54,15 @@ export function OvertimeTable() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {overtimeRows.map((row) => (
-            <TableRow key={row.name}>
+          {rows.map((row) => (
+            <TableRow key={row.id}>
               <TableCell>
                 <div className="flex flex-col gap-0.5">
                   <span className="font-medium">{row.name}</span>
-                  {row.note ? (
-                    <span className="text-muted-foreground text-xs">{row.note}</span>
+                  {row.consecutiveDays >= limits.consecutiveOverrideDays ? (
+                    <span className="text-muted-foreground text-xs">
+                      Seventh consecutive day, needs an override
+                    </span>
                   ) : null}
                 </div>
               </TableCell>
@@ -71,9 +73,9 @@ export function OvertimeTable() {
                 <span
                   className={cn(
                     "text-sm",
-                    row.consecutiveDays >= 7
+                    row.consecutiveDays >= limits.consecutiveOverrideDays
                       ? "text-destructive font-medium"
-                      : row.consecutiveDays >= 6
+                      : row.consecutiveDays >= limits.consecutiveWarnDays
                         ? "font-medium"
                         : "text-muted-foreground",
                   )}

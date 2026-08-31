@@ -4,9 +4,7 @@ import * as React from "react"
 import { HugeiconsIcon } from "@hugeicons/react"
 import { Search01Icon } from "@hugeicons/core-free-icons"
 
-import { demoStaff, type DemoStaff } from "@/lib/mock/staff"
-import { demoLocations } from "@/lib/mock/locations"
-import { weeklyHoursByName } from "@/lib/schedule-utils"
+import type { RosterMember } from "@/lib/data/roster"
 import { cn } from "@/lib/utils"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
@@ -28,28 +26,33 @@ import {
 } from "@/components/ui/select"
 import { StaffDetailSheet } from "@/components/staff/staff-detail-sheet"
 
-function locationName(id: string) {
-  return demoLocations.find((item) => item.id === id)?.name ?? id
-}
-
-export function StaffTable() {
+export function StaffTable({ members }: { members: RosterMember[] }) {
   const [query, setQuery] = React.useState("")
   const [locationFilter, setLocationFilter] = React.useState("all")
-  const [selected, setSelected] = React.useState<DemoStaff | null>(null)
+  const [selected, setSelected] = React.useState<RosterMember | null>(null)
   const [open, setOpen] = React.useState(false)
 
+  const locationOptions = React.useMemo(() => {
+    const seen = new Map<string, string>()
+    for (const member of members) {
+      for (const location of member.locations) seen.set(location.id, location.name)
+    }
+    return [...seen.entries()].map(([id, name]) => ({ id, name }))
+  }, [members])
+
   const term = query.trim().toLowerCase()
-  const filtered = demoStaff.filter((staff) => {
+  const filtered = members.filter((member) => {
     const matchesTerm =
       term === "" ||
-      staff.name.toLowerCase().includes(term) ||
-      staff.skills.some((skill) => skill.toLowerCase().includes(term))
-    const matchesLocation = locationFilter === "all" || staff.locationIds.includes(locationFilter)
+      member.name.toLowerCase().includes(term) ||
+      member.skills.some((skill) => skill.toLowerCase().includes(term))
+    const matchesLocation =
+      locationFilter === "all" || member.locations.some((location) => location.id === locationFilter)
     return matchesTerm && matchesLocation
   })
 
-  function openStaff(staff: DemoStaff) {
-    setSelected(staff)
+  function openMember(member: RosterMember) {
+    setSelected(member)
     setOpen(true)
   }
 
@@ -72,13 +75,15 @@ export function StaffTable() {
           <SelectTrigger className="w-full sm:w-48">
             <SelectValue>
               {(value) =>
-                value === "all" ? "All locations" : locationName(value as string)
+                value === "all"
+                  ? "All locations"
+                  : (locationOptions.find((option) => option.id === value)?.name ?? "All locations")
               }
             </SelectValue>
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All locations</SelectItem>
-            {demoLocations.map((location) => (
+            {locationOptions.map((location) => (
               <SelectItem key={location.id} value={location.id}>
                 {location.name}
               </SelectItem>
@@ -99,51 +104,44 @@ export function StaffTable() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filtered.map((staff) => {
-              const hours = weeklyHoursByName(staff.name)
-              return (
-                <TableRow
-                  key={staff.id}
-                  onClick={() => openStaff(staff)}
-                  className="cursor-pointer"
+            {filtered.map((member) => (
+              <TableRow key={member.id} onClick={() => openMember(member)} className="cursor-pointer">
+                <TableCell>
+                  <div className="flex items-center gap-3">
+                    <Avatar className="size-8">
+                      <AvatarFallback>{member.initials}</AvatarFallback>
+                    </Avatar>
+                    <span className="font-medium">{member.name}</span>
+                  </div>
+                </TableCell>
+                <TableCell className="hidden md:table-cell">
+                  <div className="flex flex-wrap gap-1">
+                    {member.skills.map((skill) => (
+                      <Badge key={skill} variant="secondary">
+                        {skill}
+                      </Badge>
+                    ))}
+                  </div>
+                </TableCell>
+                <TableCell className="text-muted-foreground hidden text-sm lg:table-cell">
+                  {member.locations.map((location) => location.name).join(", ")}
+                </TableCell>
+                <TableCell className="text-right text-sm">{member.desiredHours}h</TableCell>
+                <TableCell
+                  className={cn(
+                    "text-right text-sm font-medium",
+                    member.weekHours >= 35 && "text-destructive",
+                  )}
                 >
-                  <TableCell>
-                    <div className="flex items-center gap-3">
-                      <Avatar className="size-8">
-                        <AvatarFallback>{staff.initials}</AvatarFallback>
-                      </Avatar>
-                      <span className="font-medium">{staff.name}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell className="hidden md:table-cell">
-                    <div className="flex flex-wrap gap-1">
-                      {staff.skills.map((skill) => (
-                        <Badge key={skill} variant="secondary">
-                          {skill}
-                        </Badge>
-                      ))}
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-muted-foreground hidden text-sm lg:table-cell">
-                    {staff.locationIds.map(locationName).join(", ")}
-                  </TableCell>
-                  <TableCell className="text-right text-sm">{staff.desiredHours}h</TableCell>
-                  <TableCell
-                    className={cn(
-                      "text-right text-sm font-medium",
-                      hours >= 35 && "text-destructive",
-                    )}
-                  >
-                    {hours}h
-                  </TableCell>
-                </TableRow>
-              )
-            })}
+                  {member.weekHours}h
+                </TableCell>
+              </TableRow>
+            ))}
           </TableBody>
         </Table>
       </div>
 
-      <StaffDetailSheet staff={selected} open={open} onOpenChange={setOpen} />
+      <StaffDetailSheet member={selected} open={open} onOpenChange={setOpen} />
     </div>
   )
 }
